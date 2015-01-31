@@ -1,0 +1,185 @@
+﻿@{
+    ViewBag.Title = "Tree";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label class="control-label">
+                Category Title
+            </label>
+            <input id="txtCatTitle" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label class="control-label">
+                Alias
+            </label>
+            <input id="txtCatAlias" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label class="control-label">
+                Status
+            </label>
+            <select id="ddlCatStatus" class="form-control">
+                <option>Active</option>
+                <option>Inactive</option>
+            </select>
+        </div>
+        <div>
+            <button type="button" class="btn btn-danger" id="btnAdd">Add Node</button>
+            <button type="button" class="btn btn-warning" id="btnUpdate">Update Node</button>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div id="jqTree">
+            @*<ul>
+                    <li id="home">
+                        Home
+                    </li>
+                    <li item-expanded="true">
+                        Solutions
+                        <ul>
+                            <li>
+                                Educations
+                            </li>
+                            <li>
+                                Educations
+                            </li>
+                            <li>
+                                Educations
+                            </li>
+                            <li>
+                                Solutions
+                                <ul>
+                                    <li>aaaaaa</li>
+                                    <li>aaaaaa</li>
+                                    <li>aaaaaa</li>
+                                    <li>aaaaaa</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>*@
+        </div>
+    </div>
+    <div class="col-lg-4">
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#jqTree").jqxTree({ height: '450px', width: '300px' });
+
+        var data = [];
+        var nodeId = 0;
+        $(document).on("click", "#btnAdd", function () {
+
+            var selectedItem = $("#jqTree").jqxTree("selectedItem");
+
+            var objCat =
+                {
+                    "value": {
+                        "categoryTitle": $("#txtCatTitle").val().trim(),
+                        "categoryAlias": $("#txtCatAlias").val().trim(),
+                        "status": $("#ddlCatStatus :selected").val()
+                    },
+                    "id": String(nodeId++), //String(selectedItem != null ? selectedItem.element.childNodes.length : 1),
+                    "parentid": String(selectedItem != null ? selectedItem.id : -1),
+                    "text": $("#txtCatAlias").val().trim()
+                };
+
+            data.push(objCat);
+
+            var source =
+                {
+                    datatype: "json",
+                    datafields: [
+                        { name: 'id' },
+                        { name: 'parentid' },
+                        { name: 'text' },
+                        { name: 'value' }
+                    ],
+                    id: 'id',
+                    localdata: data
+                };
+
+
+            console.log(JSON.stringify(source));
+            var dataAdapter = new $.jqx.dataAdapter(source);
+            dataAdapter.dataBind();
+
+            var records = dataAdapter.getRecordsHierarchy('id', 'parentid', 'items', [{ name: 'text', map: 'label' }]);
+
+            $("#jqTree").jqxTree({ source: records });
+
+            //if (selectedItem != null) {
+            //    $("#jqTree").jqxTree('addTo', { label: 'indianic' }, selectedItem.element, false);
+            //}
+            //else {
+            //    $("#jqTree").jqxTree('addTo', { label: 'indianic' }, null, false);
+            //}
+            //$("#jqTree").jqxTree('render');
+        });
+
+        $(document).on("select", "#jqTree", function (event) {
+
+            var args = event.args;
+            var item = $("#jqTree").jqxTree('getItem', args.element);
+            $("#txtCatTitle").val(item.value.categoryTitle);
+            $("#txtCatAlias").val(item.value.categoryAlias);
+            $("#ddlCatStatus").val(item.value.status);
+        });
+
+        $(document).on("click", "#btnUpdate", function () {
+            var selectedItem = $("#jqTree").jqxTree("selectedItem");
+            if (selectedItem != null) {
+                debugger;
+                var objCat =
+                {
+                    "value": {
+                        "categoryTitle": $("#txtCatTitle").val().trim(),
+                        "categoryAlias": $("#txtCatAlias").val().trim(),
+                        "status": $("#ddlCatStatus :selected").val()
+                    },
+                    "id": String(selectedItem.element.id),
+                    "parentid": String(selectedItem.parentId),
+                    "text": $("#txtCatAlias").val().trim()
+                };
+
+
+                $.each(data, function (index, element) {
+                    if (element.id == selectedItem.id) {
+                        element.text = $("#txtCatAlias").val().trim();
+                        element.value.categoryTitle = $("#txtCatTitle").val().trim();
+                        element.value.categoryAlias = $("#txtCatAlias").val().trim();
+                        element.value.status = $("#ddlCatStatus :selected").val();
+                    }
+                });
+
+                var source =
+                    {
+                        datatype: "json",
+                        datafields: [
+                            { name: 'id' },
+                            { name: 'parentid' },
+                            { name: 'text' },
+                            { name: 'value' }
+                        ],
+                        id: 'id',
+                        localdata: data
+                    };
+
+                console.log(JSON.stringify(source));
+                var dataAdapter = new $.jqx.dataAdapter(source);
+                dataAdapter.dataBind();
+
+                var records = dataAdapter.getRecordsHierarchy('id', 'parentid', 'items', [{ name: 'text', map: 'label' }]);
+                $("#jqTree").jqxTree({ source: records });
+            }
+
+        });
+    });
+</script>
